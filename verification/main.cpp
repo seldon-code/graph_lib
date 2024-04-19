@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "undirected_network.hpp"
 #include <cstdio>
 
 int main(){

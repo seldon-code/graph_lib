@@ -3,7 +3,7 @@
 #include <tuple>
 #include <vector>
 
-namespace Seldon {
+namespace Graph {
 
 class TarjanConnectivityAlgo {
 public:
@@ -110,4 +110,4 @@ private:
   }
 };
 
-} // namespace Seldon
+} // namespace Graph
