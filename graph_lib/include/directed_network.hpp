@@ -2,7 +2,7 @@
 #include "network_base.hpp"
 #include <utility>
 
-namespace Seldon {
+namespace Graph {
 
 /*
     A class that represents a directed graph using adjacency lists.
@@ -228,4 +228,4 @@ private:
   EdgeDirection _direction{};
 };
 
-} // namespace Seldon
+} // namespace Graph

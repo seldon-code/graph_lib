@@ -7,21 +7,20 @@ compiler = meson.get_compiler('cpp')
 inc = include_directories('graph_lib/include')
 graphlib_dep = declare_dependency(include_directories : inc)
 
-exe_verification = executable('exe', 'verification/main.cpp',
-  install : true,
-  include_directories : inc
-  )
-
 tests = [
   ['Test', 'test/test.cpp'],
 ]
+
+test_inc = []
+test_inc += inc
+test_inc += 'test/util'
 
 Catch2 = dependency('Catch2', method : 'cmake', modules : ['Catch2::Catch2WithMain', 'Catch2::Catch2'])
 
 foreach t : tests
   exe = executable(t.get(0), t.get(1),
     dependencies : [Catch2],
-    include_directories : inc
+    include_directories : test_inc
   )
   test(t.get(0), exe, workdir : meson.project_source_root())
 endforeach
