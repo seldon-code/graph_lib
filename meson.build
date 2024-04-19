@@ -8,7 +8,7 @@ inc = include_directories('graph_lib/include')
 graphlib_dep = declare_dependency(include_directories : inc)
 
 tests = [
-  ['Test', 'test/test.cpp'],
+  ['Test_Directed_Network', 'test/test_directed_network.cpp'],
 ]
 
 test_inc = []
