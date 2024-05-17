@@ -14,12 +14,10 @@ namespace Graph {
 /*
     An abstract base class for undirected and directed networks.
 */
-template <typename AgentType, typename WeightType = double> class NetworkBase {
+template <typename WeightType = double> class NetworkBase {
 public:
   using WeightT = WeightType;
-  using AgentT = AgentType;
-  // @TODO: Make this private later
-  std::vector<AgentT> agents{}; // List of agents of type AgentType
+
 protected:
   std::vector<std::vector<size_t>>
       neighbour_list{}; // Neighbour list for the connections
@@ -30,31 +28,22 @@ public:
   NetworkBase() = default;
 
   NetworkBase(size_t n_agents)
-      : agents(std::vector<AgentT>(n_agents)),
-        neighbour_list(
+      : neighbour_list(
             std::vector<std::vector<size_t>>(n_agents, std::vector<size_t>{})),
         weight_list(std::vector<std::vector<WeightT>>(n_agents,
                                                       std::vector<WeightT>{})) {
   }
 
-  NetworkBase(std::vector<AgentT> agents)
-      : agents(agents), neighbour_list(std::vector<std::vector<size_t>>(
-                            agents.size(), std::vector<size_t>{})),
-        weight_list(std::vector<std::vector<WeightT>>(agents.size(),
-                                                      std::vector<WeightT>{})) {
-  }
-
   NetworkBase(std::vector<std::vector<size_t>> &&neighbour_list,
               std::vector<std::vector<WeightT>> &&weight_list)
-      : agents(std::vector<AgentT>(neighbour_list.size())),
-        neighbour_list(neighbour_list), weight_list(weight_list) {}
+      : neighbour_list(neighbour_list), weight_list(weight_list) {}
 
   virtual ~NetworkBase() = default;
 
   /*
   Gives the total number of nodes in the network
   */
-  [[nodiscard]] std::size_t n_agents() const { return agents.size(); }
+  [[nodiscard]] std::size_t n_agents() const { return neighbour_list.size(); }
 
   /*
   Gives the number of edges connected to agent_idx

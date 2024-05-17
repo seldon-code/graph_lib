@@ -20,23 +20,20 @@ namespace Graph {
     Note: switch is equivalent to toggle + transpose, but much cheaper!
 */
 template <typename AgentType, typename WeightType = double>
-class DirectedNetwork : public NetworkBase<AgentType, WeightType> {
+class DirectedNetwork : public NetworkBase<WeightType> {
 public:
   enum class EdgeDirection { Incoming, Outgoing };
 
   using WeightT = WeightType;
-  using AgentT = AgentType;
 
   DirectedNetwork() = default;
 
-  DirectedNetwork(size_t n_agents) : NetworkBase<AgentT>(n_agents) {}
-
-  DirectedNetwork(std::vector<AgentT> agents) : NetworkBase<AgentT>(agents) {}
+  DirectedNetwork(size_t n_agents) : NetworkBase<>(n_agents) {}
 
   DirectedNetwork(std::vector<std::vector<size_t>> &&neighbour_list,
                   std::vector<std::vector<WeightT>> &&weight_list,
                   EdgeDirection direction)
-      : NetworkBase<AgentT>(std::move(neighbour_list), std::move(weight_list)),
+      : NetworkBase<>(std::move(neighbour_list), std::move(weight_list)),
         _direction(direction) {}
 
   /*

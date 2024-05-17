@@ -6,22 +6,19 @@ namespace Graph {
 /*
     A class that represents an undirected graph using adjacency lists.
 */
-template <typename AgentType, typename WeightType = double>
-class UndirectedNetwork : public NetworkBase<AgentType, WeightType> {
+template <typename WeightType = double>
+class UndirectedNetwork : public NetworkBase<WeightType> {
 public:
   using WeightT = WeightType;
-  using AgentT = AgentType;
 
   UndirectedNetwork() = default;
 
-  UndirectedNetwork(size_t n_agents) : NetworkBase<AgentT>(n_agents) {}
-
-  UndirectedNetwork(std::vector<AgentT> agents) : NetworkBase<AgentT>(agents) {}
+  UndirectedNetwork(size_t n_agents) : NetworkBase<>(n_agents) {}
 
   UndirectedNetwork(std::vector<std::vector<size_t>> &&neighbour_list,
                     std::vector<std::vector<WeightT>> &&weight_list)
-      : NetworkBase<AgentT>(std::move(neighbour_list), std::move(weight_list)) {
-  }
+      : Graph::NetworkBase<>(std::move(neighbour_list),
+                             std::move(weight_list)) {}
 
   /*
   Gives the number of edges connected to agent_idx
