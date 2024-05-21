@@ -13,7 +13,7 @@ public:
 
   UndirectedNetwork() = default;
 
-  UndirectedNetwork(size_t n_agents) : NetworkBase<>(n_agents) {}
+  UndirectedNetwork(size_t n_agents) : NetworkBase<WeightT>(n_agents) {}
 
   UndirectedNetwork(std::vector<std::vector<size_t>> &&neighbour_list,
                     std::vector<std::vector<WeightT>> &&weight_list)
