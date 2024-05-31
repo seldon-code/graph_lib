@@ -12,7 +12,7 @@ template <typename WeightType = double> class NetworkOperations {
 public:
   using WeightT = WeightType;
 
-  NetworkOperations(NetworkBase<WeightT> network)
+  NetworkOperations(const NetworkBase<WeightT> &network)
       : network(network), marked(std::vector<bool>(network.n_agents(), false)),
         count(0), edge_to_vertex(std::vector<size_t>(network.n_agents())) {}
 
@@ -28,14 +28,16 @@ public:
       return std::nullopt; // the path does not exist
     }
     // If the path exists, return it
+    // Start from v
     for (int x = v; x != s; x = edge_to_vertex[x]) {
       path.push_back(x);
     }
+    path.push_back(s); // Finally, add the source
     return path;
   }
 
 private:
-  NetworkBase<WeightT> network{}; // UndirectedNetwork or DirectedNetwork
+  const NetworkBase<WeightT> &network; // UndirectedNetwork or DirectedNetwork
   std::vector<bool>
       marked{};   // Chronicles whether a vertex has been visited or not
   size_t count{}; // Number of vertices visited
