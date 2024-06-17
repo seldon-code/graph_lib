@@ -38,8 +38,9 @@ public:
 
 private:
   const NetworkBase<WeightT> &network; // UndirectedNetwork or DirectedNetwork
-  std::vector<bool>
-      marked{};   // Chronicles whether a vertex has been visited or not
+  // Chronicles whether a vertex has been visited or not for DFS
+  // For BFS: chronicles whether a shortest path to this vertex is known
+  std::vector<bool> marked{};   
   size_t count{}; // Number of vertices visited
   std::vector<size_t>
       edge_to_vertex{}; // Last vertex on known path, to a vertex
