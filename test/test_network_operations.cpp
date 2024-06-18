@@ -1,8 +1,10 @@
+#include "catch2/catch_message.hpp"
 #include "catch2/matchers/catch_matchers.hpp"
 #include "network_operations.hpp"
 #include "undirected_network.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
+#include <climits>
 #include <cstddef>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
@@ -61,8 +63,21 @@ TEST_CASE("Testing bog-standard DFS and BFS") {
   INFO(fmt::format("path from BFS = {}\n", path.value()));
   REQUIRE_THAT(path.value(), Catch::Matchers::UnorderedRangeEquals(path_ref));
   // Check that the distance from the source is correct, when using BFS
-  const auto depth_required = std::vector<int>{0, 2, 1, 2, 3, 3};
+  auto depth_required = std::vector<int>{0, 2, 1, 2, 3, 3};
   auto depth_bfs = graph_traversal.get_depth_from_source();
   INFO(fmt::format("Distances of vertices from the source = {}\n", depth_bfs));
+  REQUIRE_THAT(depth_bfs, Catch::Matchers::RangeEquals(depth_required));
+  // When a maximum depth of 2 is used, then the shortest path from 0 to 5
+  // cannot be found (vertex 5 is at a distance of 3 from vertex 0)
+  REQUIRE(!graph_traversal.shortest_path_from_bfs(0, 5, 2).has_value());
+  // Update the vector containing the distances, when a maximum depth of 2 is
+  // used
+  depth_required[4] = INT_MAX;
+  depth_required[5] = INT_MAX;
+  depth_bfs = graph_traversal.get_depth_from_source();
+  INFO(fmt::format("Distances of vertices from the source when the maximum "
+                   "depth is 2 = {}\n",
+                   depth_bfs));
+  // Check that only distances upto 2 were calculated
   REQUIRE_THAT(depth_bfs, Catch::Matchers::RangeEquals(depth_required));
 }

@@ -87,7 +87,7 @@ private:
       // Check to see if the maximum depth has been reached, break if it has
       // been reached
       if (max_depth.has_value()) {
-        if (depth[v] > max_depth) {
+        if (depth[v] > max_depth.value() - 1) {
           break; // Stop BFS if the maximum search depth has been reached
         }
       }
