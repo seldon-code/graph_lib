@@ -26,8 +26,11 @@ public:
   std::optional<std::vector<size_t>> path_from_dfs(size_t s, size_t v) {
     std::vector<size_t> path{}; // Path from s to v
     reset_variables_counters(); // Reset marked and depth
+    // There is no extra condition we want to put on the DFS, so make it always
+    // return true
+    auto condition = [this]() { return true; };
     // DFS starting from the source
-    dfs(s);
+    dfs(s, condition);
     // Get one path if it exists
     return path_to_vertex(s, v);
   }
@@ -62,12 +65,13 @@ private:
                         // (given by the index in this vector)
 
   // Depth-first search from vertex v
-  void dfs(size_t v) {
+  // Condition allows you to add some additional condition for applying the DFS
+  template <typename Callback> void dfs(size_t v, Callback condition) {
     marked[v] = true;
     for (size_t w : network.get_neighbours(v)) {
-      if (!marked[w]) {
+      if (!marked[w] && condition()) {
         edge_to_vertex[w] = v;
-        dfs(w);
+        dfs(w, condition);
       }
     }
   }

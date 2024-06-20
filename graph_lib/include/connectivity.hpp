@@ -69,7 +69,7 @@ private:
         if (!processed[u]) {
           lowest[v] = std::min(lowest[v], num[u]);
         } // u not processed
-      } // u has been visited
+      }   // u has been visited
     }
 
     // Now v has been processed
