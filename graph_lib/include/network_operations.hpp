@@ -1,140 +1,62 @@
+#include "fmt/core.h"
+#include "fmt/ranges.h"
 #include "network_base.hpp"
 #include <climits>
 #include <cstddef>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <optional>
 #include <queue>
 #include <vector>
 
 namespace Graph {
 
-/*Algorithms adapted from
-Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne.
-Git repository: https://github.com/kevin-wayne/algs4
-*/
-template <typename WeightType = double> class NetworkOperations {
-public:
-  using WeightT = WeightType;
+// Breadth-first search from a source node, up to an optional user-defined
+// max_depth. Requires a vector for the depth level or distance from
+// the source (initialized to MAX_INT at first), and also a vector of vectors
+// for the parent nodes of each node.
+template <typename WeightType = double>
+void bfs(const NetworkBase<WeightType> &network,
+         std::vector<std::vector<int>> &parent, std::vector<int> &depth_level,
+         size_t source, std::optional<int> max_depth) {
+  std::queue<size_t> q; // To keep track of nodes to visit
+  // Insert the source node in the queue
+  q.push(source);
+  // Update its parent to be -1 (characteristic of the source) and its
+  // depth_level
+  parent[source] = {-1};
+  depth_level[source] = 0;
 
-  NetworkOperations(const NetworkBase<WeightT> &network)
-      : network(network), marked(std::vector<bool>(network.n_agents(), false)),
-        edge_to_vertex(std::vector<size_t>(network.n_agents())),
-        depth(std::vector<int>(network.n_agents(), INT_MAX)) {}
+  // Keep traversing until the queue is empty
+  while (!q.empty()) {
+    // Remove next vertex from the queue
+    size_t v = q.front();
+    q.pop();
+    // Check to see if the maximum depth has been reached, break if it has
+    // been reached
+    if (max_depth.has_value()) {
+      if (depth_level[v] > max_depth.value() - 1) {
+        break; // Stop BFS if the maximum search depth has been reached
+      }
+    }
 
-  // Returns a path from a source s to a vertex v using DFS (if it exists)
-  // If it does not exist, returns nullopt
-  // This will not give all the paths (or even the shortest path)
-  std::optional<std::vector<size_t>> path_from_dfs(size_t s, size_t v) {
-    std::vector<size_t> path{}; // Path from s to v
-    reset_variables_counters(); // Reset marked and depth
-    // There is no extra condition we want to put on the DFS, so make it always
-    // return true
-    auto condition = [this]() { return true; };
-    // DFS starting from the source
-    dfs(s, condition);
-    // Get one path if it exists
-    return path_to_vertex(s, v);
-  }
-
-  // Returns one (of possibly many) shortest paths from a source s to a vertex v
-  // using BFS (if it exists) If a shortest path, within an optional depth
-  // cutoff (inclusive) does not exist, returns nullopt This will not give all
-  // the shortest paths
-  std::optional<std::vector<size_t>>
-  shortest_path_from_bfs(size_t s, size_t v,
-                         std::optional<int> max_depth = std::nullopt) {
-    std::vector<size_t> path{}; // One shortest path from s to v
-    reset_variables_counters(); // Reset marked and depth
-    // BFS starting from the source
-    bfs(s, max_depth);
-    // Get one shortest path if it exists
-    return path_to_vertex(s, v);
-  }
-
-  // Get the depth of vertices or distances from the source
-  // Using this function only makes sense if you have used BFS
-  std::vector<int> get_depth_from_source() { return depth; }
-
-private:
-  const NetworkBase<WeightT> &network; // UndirectedNetwork or DirectedNetwork
-  // Chronicles whether a vertex has been visited or not
-  std::vector<bool> marked{};
-  std::vector<int>
-      depth{}; // Distance of the node from the source (given by BFS)
-  std::vector<size_t>
-      edge_to_vertex{}; // Last vertex on known path, to a vertex
-                        // (given by the index in this vector)
-
-  // Depth-first search from vertex v
-  // Condition allows you to add some additional condition for applying the DFS
-  template <typename Callback> void dfs(size_t v, Callback condition) {
-    marked[v] = true;
+    // Go through the neighbours of v
     for (size_t w : network.get_neighbours(v)) {
-      if (!marked[w] && condition()) {
-        edge_to_vertex[w] = v;
-        dfs(w, condition);
+      // If a shorter distance has been found, remove all the previous parents
+      // and update the new parent to be v
+      if (depth_level[w] > depth_level[v] + 1) {
+        depth_level[w] = depth_level[v] + 1;
+        parent[w].clear();
+        parent[w].push_back(v);
+        q.push(w); // Add the current node w to the queue
+      }
+      // Otherwise, another candidate parent (i.e. node v) has been found for
+      // the shortest path
+      else if (depth_level[w] == depth_level[v] + 1) {
+        parent[w].push_back(v);
       }
     }
   }
+}
 
-  // Breadth-first search from a source node/vertex s
-  void bfs(size_t s, std::optional<int> max_depth = std::nullopt) {
-    std::queue<size_t> q; // To keep track of vertices to visit
-    depth[s] = 0;         // Distance from the source
-    // Mark the source and put it on the queue
-    marked[s] = true;
-    q.push(s);
-
-    while (!q.empty()) {
-      // Remove next vertex from the queue
-      size_t v = q.front();
-      q.pop();
-      // Check to see if the maximum depth has been reached, break if it has
-      // been reached
-      if (max_depth.has_value()) {
-        if (depth[v] > max_depth.value() - 1) {
-          break; // Stop BFS if the maximum search depth has been reached
-        }
-      }
-
-      // Go through the neighbours of v
-      for (size_t w : network.get_neighbours(v)) {
-        // Process every unmarked adjacent vertex
-        // All unmarked vertices that are adjacent to v are added to the queue
-        if (!marked[w]) {
-          edge_to_vertex[w] = v;   // Save last edge on *a* shortest path
-          marked[w] = true;        // Mark it because the path is known
-          depth[w] = depth[v] + 1; // Update the distance from the source for w
-          q.push(w);               // Add it to the queue
-        }
-      }
-    }
-  }
-
-  // Reset marked (that chronicles visited vertices) and depth (distance of the
-  // vertex from the source)
-  void reset_variables_counters() {
-    depth.clear();
-    depth.resize(network.n_agents(), INT_MAX);
-    marked.clear();
-    marked.resize(network.n_agents(), false);
-  }
-
-  // Returns false if a path to vertex v does not exist
-  bool path_exists_to_vertex(size_t v) { return marked[v]; }
-
-  // Returns one path from s to v (shortest if BFS was used)
-  std::optional<std::vector<size_t>> path_to_vertex(size_t s, size_t v) {
-    if (!path_exists_to_vertex(v)) {
-      return std::nullopt; // the path does not exist
-    }
-    // If the path exists, return it
-    // Start from v
-    std::vector<size_t> path{}; // Path from s to v
-    for (size_t x = v; x != s; x = edge_to_vertex[x]) {
-      path.push_back(x);
-    }
-    path.push_back(s); // Finally, add the source
-    return path;
-  }
-};
 } // namespace Graph

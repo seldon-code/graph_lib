@@ -9,10 +9,11 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <memory>
+#include <optional>
 #include <set>
 #include <vector>
 
-TEST_CASE("Testing bog-standard DFS and BFS") {
+TEST_CASE("Testing bog-standard BFS with unique shortest paths") {
   using namespace Graph;
   using UndirectedNetwork = UndirectedNetwork<double>;
   using WeightT = double;
@@ -48,36 +49,23 @@ TEST_CASE("Testing bog-standard DFS and BFS") {
   // There is only one edge connected to 0
   REQUIRE(network.n_edges(0) == 1);
 
-  // Create a graph traversal object
-  auto graph_traversal = NetworkOperations<WeightT>(network);
+  // When the source is set as 0, test that the depth at 5 is 3 when max_depth
+  // is not set If max_depth is not set, then the whole graph will be traversed.
+  int depth_required = 3;
+  auto depth_level(std::vector<int>(network.n_agents(), INT_MAX));
+  auto parent = std::vector<std::vector<int>>{n_agents, std::vector<int>{}};
+  // Perform the BFS from the source 0, and no max_depth
+  bfs(network, parent, depth_level, 0, std::nullopt);
+  REQUIRE(depth_level[5] == depth_required);
 
-  // Find a path from 0 to 5 using DFS
-  const auto path_ref = std::vector<size_t>{0, 2, 3, 5}; // Desired path
-  auto path = graph_traversal.path_from_dfs(0, 5);
-  INFO(fmt::format("path from DFS = {}\n", path.value()));
+  // Clear parent and depth_level
+  for (auto &p : parent)
+    p.clear();
+  depth_level.clear();
+  depth_level.resize(network.n_agents(), INT_MAX);
 
-  REQUIRE_THAT(path.value(), Catch::Matchers::UnorderedRangeEquals(path_ref));
-
-  // Find a path from 0 to 5 using BFS (no maximum depth)
-  path = graph_traversal.shortest_path_from_bfs(0, 5);
-  INFO(fmt::format("path from BFS = {}\n", path.value()));
-  REQUIRE_THAT(path.value(), Catch::Matchers::UnorderedRangeEquals(path_ref));
-  // Check that the distance from the source is correct, when using BFS
-  auto depth_required = std::vector<int>{0, 2, 1, 2, 3, 3};
-  auto depth_bfs = graph_traversal.get_depth_from_source();
-  INFO(fmt::format("Distances of vertices from the source = {}\n", depth_bfs));
-  REQUIRE_THAT(depth_bfs, Catch::Matchers::RangeEquals(depth_required));
-  // When a maximum depth of 2 is used, then the shortest path from 0 to 5
-  // cannot be found (vertex 5 is at a distance of 3 from vertex 0)
-  REQUIRE(!graph_traversal.shortest_path_from_bfs(0, 5, 2).has_value());
-  // Update the vector containing the distances, when a maximum depth of 2 is
-  // used
-  depth_required[4] = INT_MAX;
-  depth_required[5] = INT_MAX;
-  depth_bfs = graph_traversal.get_depth_from_source();
-  INFO(fmt::format("Distances of vertices from the source when the maximum "
-                   "depth is 2 = {}\n",
-                   depth_bfs));
-  // Check that only distances upto 2 were calculated
-  REQUIRE_THAT(depth_bfs, Catch::Matchers::RangeEquals(depth_required));
+  // Check that the BFS gives a depth level value of INT_MAX if the max_depth is
+  // set to 2
+  bfs(network, parent, depth_level, 0, 2);
+  REQUIRE(depth_level[5] == INT_MAX);
 }
