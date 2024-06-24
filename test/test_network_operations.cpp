@@ -13,7 +13,8 @@
 #include <set>
 #include <vector>
 
-TEST_CASE("Testing bog-standard BFS with unique shortest paths") {
+TEST_CASE("Testing bog-standard BFS with unique shortest paths",
+          "[standardBFS]") {
   using namespace Graph;
   using UndirectedNetwork = UndirectedNetwork<double>;
   using WeightT = double;
@@ -68,4 +69,55 @@ TEST_CASE("Testing bog-standard BFS with unique shortest paths") {
   // set to 2
   bfs(network, parent, depth_level, 0, 2);
   REQUIRE(depth_level[5] == INT_MAX);
+}
+
+TEST_CASE("Getting multiple shortest paths using BFS", "[multipleBFS]") {
+  using namespace Graph;
+  using UndirectedNetwork = UndirectedNetwork<double>;
+  using WeightT = double;
+
+  // Generate some network
+  /* Nodes: 0, 2, 1, 3, 4, 5
+  ACII art made in https://asciiflow.com
+               +---+
+         +---+ 0 +---+
+         |   +---+   |
+         |           |
+       +-+-+       +-+-+
+  +----+ 1 |       | 2 +---+
+  |    +---+--+    +---+   |
+  |           |            |
+  |   +---+   +-----+---+  |
+  +---+ 3 |         | 6 +--+
+      +-+-+---------+-+-+
+        |             |
+      +-+-+           |
+      | 4 +-----------+
+      +-+-+
+        |
+      +-+-+
+      | 5 |
+      +---+
+
+  */
+  const auto n_agents = 7;
+  auto network = UndirectedNetwork(n_agents);
+  const WeightT weight_edge = 1.0;
+  const auto total_n_edges = 10;
+  // Add edges to the network
+  network.push_back_neighbour_and_weight(0, 1, weight_edge);
+  network.push_back_neighbour_and_weight(0, 2, weight_edge);
+  network.push_back_neighbour_and_weight(1, 2, weight_edge);
+  network.push_back_neighbour_and_weight(1, 3, weight_edge);
+  network.push_back_neighbour_and_weight(1, 6, weight_edge);
+  network.push_back_neighbour_and_weight(2, 6, weight_edge);
+  network.push_back_neighbour_and_weight(3, 4, weight_edge);
+  network.push_back_neighbour_and_weight(3, 6, weight_edge);
+  network.push_back_neighbour_and_weight(4, 5, weight_edge);
+  network.push_back_neighbour_and_weight(4, 6, weight_edge);
+
+  // Check that the network has been created with the prescribed number of edges
+  REQUIRE(network.n_edges() == total_n_edges);
+  // There are two edges connected to 0
+  REQUIRE(network.n_edges(0) == 2);
 }
