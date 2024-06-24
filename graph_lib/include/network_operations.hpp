@@ -59,4 +59,39 @@ void bfs(const NetworkBase<WeightType> &network,
   }
 }
 
+// Given all the parents for each node, *all* paths are reconstructed by
+// iterating up the parents recursively
+inline void reconstruct_paths(const std::vector<std::vector<int>> &parent,
+                              std::vector<std::vector<int>> &result_paths,
+                              std::vector<int> &path, const int v) {
+  // When you have reached the source parent, add the path and return
+  if (v == -1) {
+    result_paths.push_back(path);
+    return;
+  }
+
+  // Loop through all the parents for the given vertex
+  for (auto par : parent[v]) {
+
+    // Add the current vertex to the current path
+    path.push_back(v);
+
+    // Recursively iterate through parents
+    reconstruct_paths(parent, result_paths, path, par);
+
+    // Remove the current vertex v
+    path.pop_back();
+  }
+}
+
+// For this function to work, you must have already performed BFS using a source
+// node. This will create the depth_level vector containing the
+// distances/depth_level from the source This tells you whether a path from the
+// source to v exists or not
+bool inline path_exists_to_destination(const std::vector<int> &depth_level,
+                                       const int v) {
+
+  return !(depth_level[v] == INT_MAX);
+}
+
 } // namespace Graph
