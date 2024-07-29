@@ -113,6 +113,19 @@ public:
   }
 
   /*
+  Checks if a connection exists between two agents i_idx and j_idx
+  */
+  bool connection_exists(size_t i_idx, size_t j_idx) const {
+    auto i_neighbours = get_neighbours(i_idx);
+    if (std::find(i_neighbours.begin(), i_neighbours.end(), j_idx) ==
+        std::end(i_neighbours)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  /*
   Clears the network
   */
   void clear() {
